@@ -36,7 +36,7 @@ youtuber_list = [["Micheal Reeves", "https://www.youtube.com/watch?v=mvz3LRK263E
                  ["Mumbo Jumbo", "https://www.youtube.com/watch?v=pxlIpmKQ-XE&list=UULFhFur_NwVSbUozOcF_F2kMg"],
                  ["", ""]]
 weather_url = f"http://api.openweathermap.org/data/2.5/weather?q=indianapolis&appid=25c3301dc7b7a72a13b83eb4a39cef51"
-api_key = ""
+api_key = "sk-proj-HohQBzV1jzM5C3hfgZYTT3BlbkFJFwa6kJ8jQNoxGmGNDu1N"
 client = OpenAI(api_key=api_key)
 
 conversation = []
