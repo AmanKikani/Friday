@@ -46,7 +46,6 @@ def updateMessages():
     global conversation
     conversation = []
     f = open('convo.txt', 'r')
-
     for line in f:
         if line[:5] == "Syst ":
             conversation.append({'role': 'system', 'content': '' + str(line).replace("Syst ", "").replace("\n", "") + ''})
@@ -165,7 +164,7 @@ def changeStandby(sec):
 def recentSpeak(talk):
 
     global call_minsec, minsec, standby
-    if talk == True:
+    if talk:
         now = datetime.now()
         # str(%H,%M,%S)
         curr_min = now.strftime("%M")
@@ -227,6 +226,8 @@ if __name__ == "__main__":
             # Copy the contents of the clipboard to a variable
             clipboard_contents = pyperclip.paste()
             f = open('convo.txt', 'a')
+            curtime = datetime.now()
+            curtime = curtime.strftime("%d/%m/%y %H-%M-%S")
             f.write("User " + str(clipboard_contents).replace("\n","") + ". TIMESTAMP: " + curtime + "\n")
             f.close()
             response = openAicall(clipboard_contents)
@@ -250,7 +251,7 @@ if __name__ == "__main__":
             f = open('convo.txt', 'a')
             f.write("User You are now in sandbox mode. Start the code prompt \n")
             f.close()
-            while breaker == False:
+            while not breaker:
                 response = openAicall("")
                 asstWrite(response)
                 f = open('convo.txt', 'a')
