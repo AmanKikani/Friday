@@ -25,14 +25,12 @@ import subprocess
 # importing required module
 import http.client as httplib
 # function to check internet connectivity
-run = False
+
+
 def microphone_action():
-    global run
-    if run:
-        run = False
-    else:
-        run = True
+    run()
     return {"message": "Activation complete!", "status": "success"}
+
 
 def read_chat_log(file_path):
     try:
@@ -41,6 +39,7 @@ def read_chat_log(file_path):
             return lines[-10:]  # Return the last 10 lines
     except FileNotFoundError:
         return ["No chat log available."]
+
 
 def main():
     st.set_page_config(page_title="LUMIN App", layout="wide")
@@ -201,6 +200,7 @@ def openAicall(call):
     print(response['message']['content'])
     return str(response['message']['content'])
 
+
 def visionCall():
     global conversation
     updateMessages()
@@ -210,10 +210,13 @@ def visionCall():
     print(response['message']['content'])
     return str(response['message']['content'])
 
+
 def sandbox(call):
     response = ollama.generate(model='deepseek-coder-v2',
                                prompt=call)
     return str(response['response'])
+
+
 def codeLlama(call):
     response = ollama.generate(model='codellama',
                                prompt=call + ". No extra comments or words, only code. Respond only with code. "
@@ -222,11 +225,13 @@ def codeLlama(call):
     print(response['response'])
     return str(response['response'])
 
+
 def quickCall(call):
-    response = ollama.generate(model = "phi3",
-                               promt = call)
+    response = ollama.generate(model="phi3",
+                               promt=call)
     print(response['response'])
     return str(response['response'])
+
 
 def openAicallV1(call):
     global conversation
@@ -253,9 +258,9 @@ def openAicallV1(call):
 
     return response
 
+
 def runScript(scriptName):
     subprocess.run(["python", scriptName])
-
 
 
 def mutliSpeech(texts):
@@ -270,6 +275,7 @@ def mutliSpeech(texts):
     x = 0
     while x < len(arr):
         arr[x].join()
+
 
 def speech(texts):
     if checkConnection():
@@ -299,6 +305,7 @@ def oldSpeech(text):
     )
 
     response.stream_to_file(speech_file_path)
+
 
 def findIndex(stringArr, keyString):
     #  Initialising result array to -1
@@ -331,9 +338,11 @@ def listen():
     except sr.UnknownValueError:
         return ""
 
+
 def changeStandby(sec):
     global standby
     standby = sec
+
 
 def recentSpeak(talk):
 
@@ -362,6 +371,7 @@ def recentSpeak(talk):
     else:
         return False
 
+
 def wakeWordAdd(command):
     if command != "":
         command = "jarvis " + command
@@ -370,6 +380,7 @@ def wakeWordAdd(command):
         f.close()
         updateMessages()
 
+
 def startUp():
     subprocess.call(['open', "/System/Applications/Safari.app"])
     subprocess.call(['open', "/System/Applications/PyCharm.app"])
@@ -377,6 +388,7 @@ def startUp():
     pyautogui.press('enter')
     recentSpeak(True)
     asstWrite("Starting up now")
+
 
 def screenAll():
     pyautogui.keyDown('command')
@@ -395,6 +407,7 @@ def screenAll():
     speech(response)
     os.system("afplay speech.mp3")
     asstWrite(response)
+
 
 def control(conversation):
     speech("What would you like me to do?")
@@ -422,12 +435,14 @@ def control(conversation):
         response = call(Invalid Format, respond with only click drag or type)
     '''
 
+
 def viewClipboard():
     f = open('convo.txt', 'a')
     f.write("User " + pyperclip.paste().replace("\n", ""))
     f.close()
-    response = openAicall(command)
+    response = openAicall("command")
     speech(response)
+
 
 def pyPress(presses):
     x = 0
@@ -444,10 +459,12 @@ def pyPress(presses):
 
 
 if __name__ == "__main__":
-    global run
     main()
+
+
+def run():
     checkConnection()
-    while run:
+    while True:
         print("ready")
         print(standby)
         command = listen().lower()
@@ -488,7 +505,7 @@ if __name__ == "__main__":
                     "and should output a code-like response. Use that to learn more about how code works."
                     "Once you want be done, simply respond with: EXIT_SANDBOX and it will take you out of the mode \n")
             f.close()
-            asstWrite(openAicall(command).replace("\n",""))
+            asstWrite(openAicall(command).replace("\n", ""))
             breaker = False
             f = open('convo.txt', 'a')
             f.write("User You are now in sandbox mode. Start the code prompt \n")
@@ -497,13 +514,13 @@ if __name__ == "__main__":
                 response = openAicall("")
                 asstWrite(response)
                 f = open('convo.txt', 'a')
-                f.write("User " + sandbox(response).replace("\n","")+ "\n")
+                f.write("User " + sandbox(response).replace("\n", "") + "\n")
                 f.close()
             f = open('convo.txt', 'a')
             f.write("User You are out of sandbox mode \n")
             f.close()
         elif "jarvis" in command and "summarize" in command:
-            presses = [['command',2],['a',1],['c',1],['command',3],['escape',1]]
+            presses = [['command', 2], ['a', 1], ['c', 1], ['command', 3], ['escape', 1]]
             pyPress(presses)
             clipboard_contents = pyperclip.paste()
             prompt = ("Summarize the contents of this file in a sentence " + clipboard_contents)
@@ -534,7 +551,7 @@ if __name__ == "__main__":
             subprocess.call(['open', "/System/Applications/Mail.app"])
             emailBody = openAicall(command)
             pyautogui.PAUSE = 0
-            presses = [['command',2],['n',1],['command',3],['tab',1],['tab',1],['tab',1],[emailBody,4]]
+            presses = [['command', 2], ['n', 1], ['command', 3], ['tab', 1], ['tab', 1], ['tab', 1], [emailBody, 4]]
             pyPress(presses)
             speech("Email body has been written")
             asstWrite("Email Body has been written")
@@ -560,13 +577,25 @@ if __name__ == "__main__":
             asstWrite("Turning volume down")
             # play speech audi
             os.system("afplay speech.mp3")
-            presses = [['alt',2],['space',1],['alt',3],["voldown",4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],["voldown",4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],["voldown",4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1]]
+            presses = [['alt', 2], ['space', 1], ['alt', 3], ["voldown", 4], ['enter', 1], ['alt', 2], ['space', 1],
+                       ['alt', 3], ['voldown', 4], ['enter', 1], ['alt', 2], ['space', 1], ['alt', 3], ['voldown', 4],
+                       ['enter', 1], ['alt', 2], ['space', 1], ['alt', 3], ["voldown", 4], ['enter', 1], ['alt', 2],
+                       ['space', 1], ['alt', 3], ['voldown', 4], ['enter', 1], ['alt', 2], ['space', 1], ['alt', 3],
+                       ['voldown', 4], ['enter', 1], ['alt', 2], ['space', 1], ['alt', 3], ["voldown", 4], ['enter', 1],
+                       ['alt', 2], ['space', 1], ['alt', 3], ['voldown', 4], ['enter', 1], ['alt', 2], ['space', 1],
+                       ['alt', 3], ['voldown', 4], ['enter', 1]]
             pyPress(presses)
         elif "jarvis volume up" in command:
             speech("turning up the volume")
             asstWrite("turning up the volume")
             os.system("afplay speech.mp3")
-            presses = [['alt',2],['space',1],['alt',3],["volup",4],['enter',1],['alt',2],['space',1],['alt',3],["volup",4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],["volup",4],['enter',1],['alt',2],['space',1],['alt',3],["volup",4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],["volup",4],['enter',1],['alt',2],['space',1],['alt',3],["volup",4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1]]
+            presses = [['alt', 2], ['space', 1], ['alt', 3], ["volup", 4], ['enter', 1], ['alt', 2], ['space', 1],
+                       ['alt', 3], ["volup", 4], ['enter', 1], ['alt', 2], ['space', 1], ['alt', 3], ['voldown', 4],
+                       ['enter', 1], ['alt', 2], ['space', 1], ['alt', 3], ["volup", 4], ['enter', 1], ['alt', 2],
+                       ['space', 1], ['alt', 3], ["volup", 4], ['enter', 1], ['alt', 2], ['space', 1], ['alt', 3],
+                       ['voldown', 4], ['enter', 1], ['alt', 2], ['space', 1], ['alt', 3], ["volup", 4], ['enter', 1],
+                       ['alt', 2], ['space', 1], ['alt', 3], ["volup", 4], ['enter', 1], ['alt', 2], ['space', 1],
+                       ['alt', 3], ['voldown', 4], ['enter', 1]]
             pyPress(presses)
         elif "jarvis quit all" in command:
             speech("Are you sure?")
@@ -576,7 +605,7 @@ if __name__ == "__main__":
             while command == "":
                 command = listen().lower()
             if "yes" in command:
-                presses = [['alt',2],['space',1],['alt',3],["quitall",4],['enter',1]]
+                presses = [['alt', 2], ['space', 1], ['alt', 3], ["quitall", 4], ['enter', 1]]
                 pyPress(presses)
             asstWrite("Okay")
             speech("Okay")
