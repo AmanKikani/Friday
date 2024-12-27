@@ -1,7 +1,6 @@
-import streamlit as st
-import json
-import speech_recognition as sr
 # Remember, we import as SpeechRecognition and we need pyaudio as well for it to work
+import streamlit as st
+import speech_recognition as sr
 import pyautogui
 import time
 from openai import OpenAI
@@ -12,19 +11,13 @@ import pyperclip
 import warnings
 from datetime import datetime
 import ollama
-import subprocess
-import whisper
 import cv2
 import torch
 import torchaudio
 import ChatTTS
-from IPython.display import Audio
-from urllib3.exceptions import NotOpenSSLWarning
 import threading
 import subprocess
-# importing required module
 import http.client as httplib
-# function to check internet connectivity
 
 
 def microphone_action():

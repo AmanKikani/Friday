@@ -1,3 +1,175 @@
+# import streamlit as st
+# import numpy as np
+# import matplotlib.pyplot as plt
+# import sounddevice as sd
+# import time
+#
+# # Set up constants
+# SAMPLE_RATE = 44100  # Sample rate (samples per second)
+# CHANNELS = 1  # Mono audio
+# BUFFER_SIZE = 1024  # Number of samples per update
+#
+#
+# # Function to update the audio plot in real-time
+# def plot_waveform(audio_data):
+#     plt.figure(figsize=(10, 4))
+#     plt.plot(audio_data, color='blue')
+#     plt.title("Live Audio Waveform")
+#     plt.xlabel("Samples")
+#     plt.ylabel("Amplitude")
+#     plt.grid(True)
+#     plt.tight_layout()
+#     st.pyplot(plt)
+#
+#
+# # Function to capture microphone audio in real-time and visualize
+# def record_and_visualize():
+#     # Streamlit title and instructions
+#     st.title("Live Microphone Audio Visualizer")
+#     st.write("This app captures and visualizes live microphone audio.")
+#
+#     # Create a placeholder for the plot
+#     audio_placeholder = st.empty()
+#
+#     # Start recording audio
+#     with st.spinner("Recording..."):
+#         try:
+#             # Set up the stream for audio capture
+#             audio_stream = sd.InputStream(callback=audio_callback, channels=CHANNELS, samplerate=SAMPLE_RATE,
+#                                           blocksize=BUFFER_SIZE)
+#             audio_stream.start()
+#
+#             while True:
+#                 # Keep the plot updated
+#                 audio_data = np.array(audio_data_buffer)
+#                 audio_placeholder.pyplot(plot_waveform(audio_data))
+#
+#                 time.sleep(0.1)  # Update every 100 ms
+#         except KeyboardInterrupt:
+#             st.warning("Recording stopped manually.")
+#             audio_stream.stop()
+#
+#
+# # Global buffer to store incoming audio
+# audio_data_buffer = []
+#
+#
+# # Callback function for audio data stream
+# def audio_callback(indata, frames, time, status):
+#     """Callback function for processing audio data."""
+#     if status:
+#         print(status)
+#     # Append new audio data to the buffer
+#     audio_data_buffer.append(indata[:, 0])  # We're using mono audio (single channel)
+#
+#     # Limit the buffer size to the last BUFFER_SIZE samples to visualize a moving window
+#     if len(audio_data_buffer) > BUFFER_SIZE:
+#         audio_data_buffer.pop(0)
+#
+#
+# # Main function to run the Streamlit app
+# if __name__ == "__main__":
+#     record_and_visualize()
+
+#THIS CODE DOESNT WORK
+'''import streamlit as st
+import pyaudio
+import numpy as np
+import time
+
+# Parameters
+CHUNK = 1024  # Number of audio samples per frame
+FORMAT = pyaudio.paInt16  # Audio format
+CHANNELS = 1  # Mono audio
+RATE = 44100  # Sampling rate in Hz
+
+# Initialize PyAudio
+p = pyaudio.PyAudio()
+stream = p.open(
+    format=FORMAT,
+    channels=CHANNELS,
+    rate=RATE,
+    input=True,
+    frames_per_buffer=CHUNK
+)
+
+# Streamlit setup
+st.title("Real-Time Audio Visualizer")
+plot_placeholder = st.empty()
+
+# Main loop
+try:
+    while True:
+        data = np.frombuffer(stream.read(CHUNK, exception_on_overflow=False), dtype=np.int16)
+        plot_placeholder.line_chart(data)
+        time.sleep(0.05)  # Small delay to prevent excessive updates
+except KeyboardInterrupt:
+    pass
+
+# Clean up
+stream.stop_stream()
+stream.close()
+p.terminate()
+
+
+'''
+
+
+
+# import pyaudio
+# import numpy as np
+# import matplotlib.pyplot as plt
+# from matplotlib.animation import FuncAnimation
+#
+# # Parameters
+# CHUNK = 1024  # Number of audio samples per frame
+# FORMAT = pyaudio.paInt16  # Audio format
+# CHANNELS = 1  # Mono audio
+# RATE = 44100  # Sampling rate in Hz
+#
+# # Initialize PyAudio
+# p = pyaudio.PyAudio()
+# stream = p.open(
+#     format=FORMAT,
+#     channels=CHANNELS,
+#     rate=RATE,
+#     input=True,
+#     frames_per_buffer=CHUNK
+# )
+#
+# # Initialize Matplotlib plot
+# fig, ax = plt.subplots()
+# x = np.arange(0, CHUNK)
+# y = np.zeros(CHUNK)
+# line, = ax.plot(x, y)
+# ax.set_ylim(-32768, 32767)  # 16-bit audio range
+# ax.set_xlim(0, CHUNK)
+# ax.set_title("Real-Time Audio Waveform")
+# ax.set_xlabel("Sample")
+# ax.set_ylabel("Amplitude")
+#
+# # Update function for the animation
+# def update(frame):
+#     data = np.frombuffer(stream.read(CHUNK, exception_on_overflow=False), dtype=np.int16)
+#     line.set_ydata(data)
+#     return line,
+#
+# # Create animation
+# ani = FuncAnimation(fig, update, blit=True, interval=50)
+#
+# try:
+#     plt.show()
+# except KeyboardInterrupt:
+#     pass
+#
+# # Clean up
+# stream.stop_stream()
+# stream.close()
+# p.terminate()
+#
+#
+
+
 # '''import torch
 # import torchaudio
 # import ChatTTS
