@@ -12,6 +12,26 @@ from datetime import datetime
 import ollama
 import subprocess
 import whisper
+import cv2
+import torch
+import torchaudio
+import ChatTTS
+from IPython.display import Audio
+from urllib3.exceptions import NotOpenSSLWarning
+import threading
+import subprocess
+
+
+# importing required module
+import http.client as httplib
+# function to check internet connectivity
+
+torch._dynamo.config.cache_size_limit = 64
+torch._dynamo.config.suppress_errors = True
+torch.set_float32_matmul_precision('high')
+
+chat = ChatTTS.Chat()
+chat.load(compile=True) # Set to True for better performance
 
 '''
 # Get device
@@ -41,6 +61,48 @@ client = OpenAI(api_key=api_key)
 
 conversation = []
 
+def checkConnection():
+    connection = httplib.HTTPConnection("www.google.com", timeout=10)
+    try:
+        connection.request("HEAD", "/")
+        connection.close()
+        print("\033[0;32mConnection on\033[0m")
+        return True
+    except:
+        print("\033[0;31mConnection failed\033[0m")
+        return False
+
+def openCamera(length):
+    face_classifier = cv2.CascadeClassifier(
+        cv2.data.haarcascades + "haarcascade_eye_tree_eyeglasses.xml"
+    )
+    video_capture = cv2.VideoCapture(0)
+
+    def detect_bounding_box(vid):
+        gray_image = cv2.cvtColor(vid, cv2.COLOR_BGR2GRAY)
+        faces = face_classifier.detectMultiScale(gray_image, 1.1, 5, minSize=(40, 40))
+        for (x, y, w, h) in faces:
+            cv2.rectangle(vid, (x, y), (x + w, y + h), (0, 0, 255), 4)
+        return faces
+
+    start = datetime.now()
+    while True:
+        end = datetime.now()
+        if (end - start).seconds >= length:
+            break
+        result, video_frame = video_capture.read()  # read frames from the video
+        if result is False:
+            break  # terminate the loop if the frame is not read successfully
+        faces = detect_bounding_box(
+            video_frame
+        )  # apply the function we created to the video frame
+        cv2.imshow(
+            "Facial Detection", video_frame
+        )  # display the processed frame in a window named "My Face Detection Project"
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
+    video_capture.release()
+    cv2.destroyAllWindows()
 
 def updateMessages():
     global conversation
@@ -78,6 +140,15 @@ def openAicall(call):
     print(response['message']['content'])
     return str(response['message']['content'])
 
+def visionCall():
+    global conversation
+    updateMessages()
+    response = ollama.chat(model='llama3.2-vision',
+                           messages=conversation,
+                           options={'temperature': 0})
+    print(response['message']['content'])
+    return str(response['message']['content'])
+
 def sandbox(call):
     response = ollama.generate(model='deepseek-coder-v2',
                                prompt=call)
@@ -87,6 +158,12 @@ def codeLlama(call):
                                prompt=call + ". No extra comments or words, only code. Respond only with code. "
                                              "Anything besides code requires a comment symbol to be made infront of it."
                                              "Do not add any explanations of the code")
+    print(response['response'])
+    return str(response['response'])
+
+def quickCall(call):
+    response = ollama.generate(model = "phi3",
+                               promt = call)
     print(response['response'])
     return str(response['response'])
 
@@ -115,7 +192,43 @@ def openAicallV1(call):
 
     return response
 
-def speech(text):
+def runScript(scriptName):
+    subprocess.run(["python", scriptName])
+
+
+
+def mutliSpeech(texts):
+    texts = texts.split(".")
+    x = 0
+    arr = []
+    while x < len(texts):
+        arr = arr.append(threading.Thread(target=runScript, args=("TTS.py",texts[x])))
+    x = 0
+    while x < len(arr):
+        arr[x].start()
+    x = 0
+    while x < len(arr):
+        arr[x].join()
+
+def speech(texts):
+    if checkConnection():
+        oldSpeech(texts)
+    else:
+        # mutliSpeech(texts)
+        wavs = chat.infer(texts)
+
+        for i in range(len(wavs)):
+            """
+            In some versions of torchaudio, the first line works but in other versions, so does the second line.
+            """
+            try:
+                torchaudio.save(f"speech.mp3", torch.from_numpy(wavs[i]).unsqueeze(0), 24000)
+            except:
+                torchaudio.save(f"speech.mp3", torch.from_numpy(wavs[i]), 24000)
+        os.system("afplay speech.mp3")
+
+
+def oldSpeech(text):
     speech_file_path = Path(__file__).parent / "speech.mp3"
 
     response = client.audio.speech.create(
@@ -188,8 +301,89 @@ def recentSpeak(talk):
     else:
         return False
 
+def wakeWordAdd(command):
+    if command != "":
+        command = "jarvis " + command
+        f = open('convo.txt', 'a')
+        f.write("User " + command + "\n")
+        f.close()
+        updateMessages()
+
+def startUp():
+    subprocess.call(['open', "/System/Applications/Safari.app"])
+    subprocess.call(['open', "/System/Applications/PyCharm.app"])
+    subprocess.call(['open', "/System/Applications/Music.app"])
+    pyautogui.press('enter')
+    recentSpeak(True)
+    asstWrite("Starting up now")
+
+def screenAll():
+    pyautogui.keyDown('command')
+    pyautogui.press('a')
+    pyautogui.press('c')
+    pyautogui.keyUp('command')
+    pyautogui.press('escape')
+    # Copy the contents of the clipboard to a variable
+    clipboard_contents = pyperclip.paste()
+    f = open('convo.txt', 'a')
+    curtime = datetime.now()
+    curtime = curtime.strftime("%d/%m/%y %H-%M-%S")
+    f.write("User " + str(clipboard_contents).replace("\n", "") + ". TIMESTAMP: " + curtime + "\n")
+    f.close()
+    response = openAicall(clipboard_contents)
+    speech(response)
+    os.system("afplay speech.mp3")
+    asstWrite(response)
+
+def control(conversation):
+    speech("What would you like me to do?")
+    os.system("afplay speech.mp3")
+    f = open('convo.txt', 'a')
+    f.write("Asst What would you like me to do?")
+    f.close()
+    print("test")
+    image = pyautogui.screenshot("test.png")
+    image.save("test.png")
+    conversation = conversation.append({'role': 'user',
+                                        'content': 'Look at this image, what function would you like to complete. [CLICK], [DRAG], [TYPE]. Choose only one',
+                                        'images': ['./test.png']})
+    response = visionCall()
+    while response != "CLICK" and response != "DRAG" and response != "TYPE":
+        f = open('convo.txt', 'a')
+        f.write("User Invalid formatting. Respond with only CLICK, DRAG, or TYPE")
+        f.close()
+        updateMessages()
+        response = visionCall()
+    # Psuedo Code to help development
+    '''
+    response = call(Ollama, what function would u like to do [click], [drag], [type])
+    while response != click and drag and type
+        response = call(Invalid Format, respond with only click drag or type)
+    '''
+
+def viewClipboard():
+    f = open('convo.txt', 'a')
+    f.write("User " + pyperclip.paste().replace("\n", ""))
+    f.close()
+    response = openAicall(command)
+    speech(response)
+
+def pyPress(presses):
+    x = 0
+    while x < len(presses):
+        if presses[x][1] == 1:
+            pyautogui.press(presses[x][0])
+        elif presses[x][1] == 2:
+            pyautogui.keyDown(presses[x][0])
+        elif presses[x][1] == 3:
+            pyautogui.keyUp(presses[x][0])
+        elif presses[x][1] == 4:
+            pyautogui.typewrite(presses[x][0])
+        x+=1
+
 
 if __name__ == "__main__":
+    checkConnection()
     while True:
         print("ready")
         print(standby)
@@ -204,41 +398,26 @@ if __name__ == "__main__":
             f.close()
             updateMessages()
         if recentSpeak(False) and "jarvis" not in command:
-            if command != "":
-                command = "jarvis " + command
-                f = open('convo.txt', 'a')
-                f.write("User " + command + "\n")
-                f.close()
-                updateMessages()
+            wakeWordAdd(command)
         if "jarvis start up" in command:
-            subprocess.call(['open', "/System/Applications/Safari.app"])
-            subprocess.call(['open', "/System/Applications/PyCharm.app"])
-            subprocess.call(['open', "/System/Applications/Music.app"])
-            pyautogui.press('enter')
-            recentSpeak(True)
-            asstWrite("Starting up now")
+            startUp()
         elif "jarvis" in command and "process and understand the screen" in command:
-            pyautogui.keyDown('command')
-            pyautogui.press('a')
-            pyautogui.press('c')
-            pyautogui.keyUp('command')
-            pyautogui.press('escape')
-            # Copy the contents of the clipboard to a variable
-            clipboard_contents = pyperclip.paste()
-            f = open('convo.txt', 'a')
-            curtime = datetime.now()
-            curtime = curtime.strftime("%d/%m/%y %H-%M-%S")
-            f.write("User " + str(clipboard_contents).replace("\n","") + ". TIMESTAMP: " + curtime + "\n")
-            f.close()
-            response = openAicall(clipboard_contents)
-            speech(response)
-            os.system("afplay speech.mp3")
-            asstWrite(response)
+            screenAll()
+        elif "jarvis" in command and "remember" in command:
+            temp = ("Does this seem like a question asking to find something from jarvis's internal memory?: \n" +
+                    command + ". Return whether or not it is asking to find something in the memory by responding"
+                                " in either only YES or only NO")
+        elif "jarvis" in command and "open" in command and "camera" in command:
+            openCamera(10)
+        elif "jarvis" in command and "take control" in command:
+            control(conversation)
         elif "jarvis" in command and "change standby" in command:
             command = command[(command.index("to")+2):]
             command = command[:(command.index("second")-1)]
             changeStandby(int(command))
             asstWrite("Changing standby to " + str(standby) + " seconds")
+        elif "jarvis" in command and "view clipboard" in command:
+            viewClipboard()
         elif "jarvis" in command and "enter sandbox mode" in command:
             print("Entering Sandbox Mode")
             f = open('convo.txt', 'a')
@@ -261,12 +440,8 @@ if __name__ == "__main__":
             f.write("User You are out of sandbox mode \n")
             f.close()
         elif "jarvis" in command and "summarize" in command:
-            pyautogui.keyDown('command')
-            pyautogui.press('a')
-            pyautogui.press('c')
-            pyautogui.keyUp('command')
-            pyautogui.press('escape')
-            # Copy the contents of the clipboard to a variable
+            presses = [['command',2],['a',1],['c',1],['command',3],['escape',1]]
+            pyPress(presses)
             clipboard_contents = pyperclip.paste()
             prompt = ("Summarize the contents of this file in a sentence " + clipboard_contents)
             tokenized_prompt = len(clipboard_contents)/5
@@ -276,7 +451,6 @@ if __name__ == "__main__":
                 reduction_rate = (tokenized_prompt/1024) * 2
                 index = int(len(clipboard_contents) / reduction_rate - 1)
                 prompt = clipboard_contents[:index]
-            # Use slicing to remove everything after the last occurrence of the delimiter
             summary = openAicall(prompt)
             print(summary)
             speech(summary)
@@ -295,15 +469,10 @@ if __name__ == "__main__":
                 while command == "":
                     command = listen().lower()
             subprocess.call(['open', "/System/Applications/Mail.app"])
-            pyautogui.keyDown('command')
-            pyautogui.press('n')
-            pyautogui.keyUp('command')
             emailBody = openAicall(command)
-            pyautogui.press('tab')
-            pyautogui.press('tab')
-            pyautogui.press('tab')
             pyautogui.PAUSE = 0
-            pyautogui.typewrite(emailBody)
+            presses = [['command',2],['n',1],['command',3],['tab',1],['tab',1],['tab',1],[emailBody,4]]
+            pyPress(presses)
             speech("Email body has been written")
             asstWrite("Email Body has been written")
             os.system("afplay speech.mp3")
@@ -323,45 +492,19 @@ if __name__ == "__main__":
             speech("Initiating Protocol 1")
             asstWrite("Initiating Protocol 1")
             os.system("afplay speech.mp3")
-        elif "jarvis volume down" in command:
+        elif "jarvis" in command and "volume down" in command:
             speech("turning volume down")
             asstWrite("Turning volume down")
             # play speech audi
             os.system("afplay speech.mp3")
-            pyautogui.keyDown('alt')
-            pyautogui.press('space')
-            pyautogui.keyUp('alt')
-            pyautogui.typewrite("voldown")
-            pyautogui.press('enter')
-            pyautogui.keyDown('alt')
-            pyautogui.press('space')
-            pyautogui.keyUp('alt')
-            pyautogui.typewrite("voldown")
-            pyautogui.press('enter')
-            pyautogui.keyDown('alt')
-            pyautogui.press('space')
-            pyautogui.keyUp('alt')
-            pyautogui.typewrite("voldown")
-            pyautogui.press('enter')
+            presses = [['alt',2],['space',1],['alt',3],["voldown",4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],["voldown",4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],["voldown",4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1]]
+            pyPress(presses)
         elif "jarvis volume up" in command:
             speech("turning up the volume")
             asstWrite("turning up the volume")
             os.system("afplay speech.mp3")
-            pyautogui.keyDown('alt')
-            pyautogui.press('space')
-            pyautogui.keyUp('alt')
-            pyautogui.typewrite("volup")
-            pyautogui.press('enter')
-            pyautogui.keyDown('alt')
-            pyautogui.press('space')
-            pyautogui.keyUp('alt')
-            pyautogui.typewrite("volup")
-            pyautogui.press('enter')
-            pyautogui.keyDown('alt')
-            pyautogui.press('space')
-            pyautogui.keyUp('alt')
-            pyautogui.typewrite("volup")
-            pyautogui.press('enter')
+            presses = [['alt',2],['space',1],['alt',3],["volup",4],['enter',1],['alt',2],['space',1],['alt',3],["volup",4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],["volup",4],['enter',1],['alt',2],['space',1],['alt',3],["volup",4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],["volup",4],['enter',1],['alt',2],['space',1],['alt',3],["volup",4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1]]
+            pyPress(presses)
         elif "jarvis quit all" in command:
             speech("Are you sure?")
             asstWrite("Are you sure?")
@@ -370,12 +513,8 @@ if __name__ == "__main__":
             while command == "":
                 command = listen().lower()
             if "yes" in command:
-                pyautogui.keyDown('alt')
-                pyautogui.keyDown('space')
-                pyautogui.keyUp('space')
-                pyautogui.keyUp('alt')
-                pyautogui.typewrite("quitall")
-                pyautogui.press('enter')
+                presses = [['alt',2],['space',1],['alt',3],["quitall",4],['enter',1]]
+                pyPress(presses)
             asstWrite("Okay")
             speech("Okay")
             os.system("afplay speech.mp3")
@@ -519,6 +658,7 @@ if __name__ == "__main__":
         elif "jarvis" in command and ("write" in command or "build" in command) and "a" in command and ("program" in command or "file" in command or "function" in command):
             command = command.replace("jarvis", "")
             response = codeLlama(command)
+            testname = quickCall("Write a one word name for this file" + response)
             asstWrite(response)
             f = open('convo.txt', 'a')
             f.write("User Respond with filetype of this program and only the filetype of this program. Ex .py, .java, .cpp\n" + response + "\n")
@@ -526,7 +666,7 @@ if __name__ == "__main__":
             filetype = openAicall("Respond with filetype of this program and only the filetype of this program. Ex .py, .java, .cpp\n" + response)
             programTime = datetime.now()
             programTime = programTime.strftime("%H,%M,%S")
-            filename = str(programTime) + filetype
+            filename = str(testname) + str(programTime) + filetype
             f = open(filename, "x")
             f.write(response)
             f.close()
