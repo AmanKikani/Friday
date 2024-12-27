@@ -1,3 +1,5 @@
+import streamlit as st
+import json
 import speech_recognition as sr
 # Remember, we import as SpeechRecognition and we need pyaudio as well for it to work
 import pyautogui
@@ -20,11 +22,70 @@ from IPython.display import Audio
 from urllib3.exceptions import NotOpenSSLWarning
 import threading
 import subprocess
-
-
 # importing required module
 import http.client as httplib
 # function to check internet connectivity
+run = False
+def microphone_action():
+    global run
+    if run:
+        run = False
+    else:
+        run = True
+    return {"message": "Activation complete!", "status": "success"}
+
+def read_chat_log(file_path):
+    try:
+        with open(file_path, "r") as file:
+            lines = file.readlines()
+            return lines[-10:]  # Return the last 10 lines
+    except FileNotFoundError:
+        return ["No chat log available."]
+
+def main():
+    st.set_page_config(page_title="LUMIN App", layout="wide")
+
+    # Header with LUMIN branding and account button
+    st.markdown("""<div style='display: flex; justify-content: space-between; align-items: center;'>
+    <h1 style='font-size: 2.5em; margin: 0;'>LUMIN</h1>
+    <button style='font-size: 1em; padding: 5px 10px; cursor: pointer;' onclick='showProfile()'>Account</button>
+    </div><hr>""", unsafe_allow_html=True)
+
+    # JavaScript for profile button
+    st.markdown("""
+    <script>
+    function showProfile() {
+        alert('Profile settings will be here.');
+    }
+    </script>
+    """, unsafe_allow_html=True)
+
+    # Activate button in the center
+    st.markdown("""<div style='display: flex; justify-content: center; margin-top: 50px;'>
+    <button style='font-size: 1.5em; padding: 10px 20px; cursor: pointer;' onclick='activate()'>Activate</button>
+    </div>""", unsafe_allow_html=True)
+
+    # JavaScript for activate button functionality
+    st.markdown("""
+    <script>
+    function activate() {
+        fetch('/microphone', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+        }).then(response => response.json()).then(data => {
+            alert(data.message);
+        });
+    }
+    </script>
+    """, unsafe_allow_html=True)
+
+    # Cool feature: Chat log box
+    st.sidebar.title("Chat Log")
+    chat_log = read_chat_log("convo.txt")
+    st.sidebar.text_area("Recent Chat Log", "\n".join(chat_log), height=600, disabled=True)
 
 torch._dynamo.config.cache_size_limit = 64
 torch._dynamo.config.suppress_errors = True
@@ -383,8 +444,10 @@ def pyPress(presses):
 
 
 if __name__ == "__main__":
+    global run
+    main()
     checkConnection()
-    while True:
+    while run:
         print("ready")
         print(standby)
         command = listen().lower()
