@@ -344,7 +344,7 @@ def control(conversation):
     print("test")
     image = pyautogui.screenshot("test.png")
     image.save("test.png")
-    conversation = conversation.append({'role': 'user',
+    conversation.append({'role': 'user',
                                         'content': 'Look at this image, what function would you like to complete. [CLICK], [DRAG], [TYPE]. Choose only one',
                                         'images': ['./test.png']})
     response = visionCall()

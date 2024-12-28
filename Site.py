@@ -1,6 +1,8 @@
-# Remember, we import as SpeechRecognition and we need pyaudio as well for it to work
 import streamlit as st
+import json
+import os
 import speech_recognition as sr
+# Remember, we import as SpeechRecognition and we need pyaudio as well for it to work
 import pyautogui
 import time
 from openai import OpenAI
@@ -11,73 +13,21 @@ import pyperclip
 import warnings
 from datetime import datetime
 import ollama
+import subprocess
+import whisper
 import cv2
 import torch
 import torchaudio
 import ChatTTS
+from IPython.display import Audio
+from urllib3.exceptions import NotOpenSSLWarning
 import threading
 import subprocess
+
+
+# importing required module
 import http.client as httplib
-
-
-def microphone_action():
-    run()
-    return {"message": "Activation complete!", "status": "success"}
-
-
-def read_chat_log(file_path):
-    try:
-        with open(file_path, "r") as file:
-            lines = file.readlines()
-            return lines[-10:]  # Return the last 10 lines
-    except FileNotFoundError:
-        return ["No chat log available."]
-
-
-def main():
-    st.set_page_config(page_title="LUMIN App", layout="wide")
-
-    # Header with LUMIN branding and account button
-    st.markdown("""<div style='display: flex; justify-content: space-between; align-items: center;'>
-    <h1 style='font-size: 2.5em; margin: 0;'>LUMIN</h1>
-    <button style='font-size: 1em; padding: 5px 10px; cursor: pointer;' onclick='showProfile()'>Account</button>
-    </div><hr>""", unsafe_allow_html=True)
-
-    # JavaScript for profile button
-    st.markdown("""
-    <script>
-    function showProfile() {
-        alert('Profile settings will be here.');
-    }
-    </script>
-    """, unsafe_allow_html=True)
-
-    # Activate button in the center
-    st.markdown("""<div style='display: flex; justify-content: center; margin-top: 50px;'>
-    <button style='font-size: 1.5em; padding: 10px 20px; cursor: pointer;' onclick='activate()'>Activate</button>
-    </div>""", unsafe_allow_html=True)
-
-    # JavaScript for activate button functionality
-    st.markdown("""
-    <script>
-    function activate() {
-        fetch('/microphone', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({}),
-        }).then(response => response.json()).then(data => {
-            alert(data.message);
-        });
-    }
-    </script>
-    """, unsafe_allow_html=True)
-
-    # Cool feature: Chat log box
-    st.sidebar.title("Chat Log")
-    chat_log = read_chat_log("convo.txt")
-    st.sidebar.text_area("Recent Chat Log", "\n".join(chat_log), height=600, disabled=True)
+# function to check internet connectivity
 
 torch._dynamo.config.cache_size_limit = 64
 torch._dynamo.config.suppress_errors = True
@@ -193,7 +143,6 @@ def openAicall(call):
     print(response['message']['content'])
     return str(response['message']['content'])
 
-
 def visionCall():
     global conversation
     updateMessages()
@@ -203,13 +152,10 @@ def visionCall():
     print(response['message']['content'])
     return str(response['message']['content'])
 
-
 def sandbox(call):
     response = ollama.generate(model='deepseek-coder-v2',
                                prompt=call)
     return str(response['response'])
-
-
 def codeLlama(call):
     response = ollama.generate(model='codellama',
                                prompt=call + ". No extra comments or words, only code. Respond only with code. "
@@ -218,13 +164,11 @@ def codeLlama(call):
     print(response['response'])
     return str(response['response'])
 
-
 def quickCall(call):
-    response = ollama.generate(model="phi3",
-                               promt=call)
+    response = ollama.generate(model = "phi3",
+                               promt = call)
     print(response['response'])
     return str(response['response'])
-
 
 def openAicallV1(call):
     global conversation
@@ -251,9 +195,9 @@ def openAicallV1(call):
 
     return response
 
-
 def runScript(scriptName):
     subprocess.run(["python", scriptName])
+
 
 
 def mutliSpeech(texts):
@@ -268,7 +212,6 @@ def mutliSpeech(texts):
     x = 0
     while x < len(arr):
         arr[x].join()
-
 
 def speech(texts):
     if checkConnection():
@@ -298,7 +241,6 @@ def oldSpeech(text):
     )
 
     response.stream_to_file(speech_file_path)
-
 
 def findIndex(stringArr, keyString):
     #  Initialising result array to -1
@@ -331,11 +273,9 @@ def listen():
     except sr.UnknownValueError:
         return ""
 
-
 def changeStandby(sec):
     global standby
     standby = sec
-
 
 def recentSpeak(talk):
 
@@ -364,7 +304,6 @@ def recentSpeak(talk):
     else:
         return False
 
-
 def wakeWordAdd(command):
     if command != "":
         command = "jarvis " + command
@@ -373,7 +312,6 @@ def wakeWordAdd(command):
         f.close()
         updateMessages()
 
-
 def startUp():
     subprocess.call(['open', "/System/Applications/Safari.app"])
     subprocess.call(['open', "/System/Applications/PyCharm.app"])
@@ -381,7 +319,6 @@ def startUp():
     pyautogui.press('enter')
     recentSpeak(True)
     asstWrite("Starting up now")
-
 
 def screenAll():
     pyautogui.keyDown('command')
@@ -401,7 +338,6 @@ def screenAll():
     os.system("afplay speech.mp3")
     asstWrite(response)
 
-
 def control(conversation):
     speech("What would you like me to do?")
     os.system("afplay speech.mp3")
@@ -411,7 +347,7 @@ def control(conversation):
     print("test")
     image = pyautogui.screenshot("test.png")
     image.save("test.png")
-    conversation = conversation.append({'role': 'user',
+    conversation.append({'role': 'user',
                                         'content': 'Look at this image, what function would you like to complete. [CLICK], [DRAG], [TYPE]. Choose only one',
                                         'images': ['./test.png']})
     response = visionCall()
@@ -428,14 +364,12 @@ def control(conversation):
         response = call(Invalid Format, respond with only click drag or type)
     '''
 
-
 def viewClipboard():
     f = open('convo.txt', 'a')
     f.write("User " + pyperclip.paste().replace("\n", ""))
     f.close()
-    response = openAicall("command")
+    response = openAicall(command)
     speech(response)
-
 
 def pyPress(presses):
     x = 0
@@ -449,10 +383,6 @@ def pyPress(presses):
         elif presses[x][1] == 4:
             pyautogui.typewrite(presses[x][0])
         x+=1
-
-
-if __name__ == "__main__":
-    main()
 
 
 def run():
@@ -498,7 +428,7 @@ def run():
                     "and should output a code-like response. Use that to learn more about how code works."
                     "Once you want be done, simply respond with: EXIT_SANDBOX and it will take you out of the mode \n")
             f.close()
-            asstWrite(openAicall(command).replace("\n", ""))
+            asstWrite(openAicall(command).replace("\n",""))
             breaker = False
             f = open('convo.txt', 'a')
             f.write("User You are now in sandbox mode. Start the code prompt \n")
@@ -507,13 +437,13 @@ def run():
                 response = openAicall("")
                 asstWrite(response)
                 f = open('convo.txt', 'a')
-                f.write("User " + sandbox(response).replace("\n", "") + "\n")
+                f.write("User " + sandbox(response).replace("\n","")+ "\n")
                 f.close()
             f = open('convo.txt', 'a')
             f.write("User You are out of sandbox mode \n")
             f.close()
         elif "jarvis" in command and "summarize" in command:
-            presses = [['command', 2], ['a', 1], ['c', 1], ['command', 3], ['escape', 1]]
+            presses = [['command',2],['a',1],['c',1],['command',3],['escape',1]]
             pyPress(presses)
             clipboard_contents = pyperclip.paste()
             prompt = ("Summarize the contents of this file in a sentence " + clipboard_contents)
@@ -544,7 +474,7 @@ def run():
             subprocess.call(['open', "/System/Applications/Mail.app"])
             emailBody = openAicall(command)
             pyautogui.PAUSE = 0
-            presses = [['command', 2], ['n', 1], ['command', 3], ['tab', 1], ['tab', 1], ['tab', 1], [emailBody, 4]]
+            presses = [['command',2],['n',1],['command',3],['tab',1],['tab',1],['tab',1],[emailBody,4]]
             pyPress(presses)
             speech("Email body has been written")
             asstWrite("Email Body has been written")
@@ -570,25 +500,13 @@ def run():
             asstWrite("Turning volume down")
             # play speech audi
             os.system("afplay speech.mp3")
-            presses = [['alt', 2], ['space', 1], ['alt', 3], ["voldown", 4], ['enter', 1], ['alt', 2], ['space', 1],
-                       ['alt', 3], ['voldown', 4], ['enter', 1], ['alt', 2], ['space', 1], ['alt', 3], ['voldown', 4],
-                       ['enter', 1], ['alt', 2], ['space', 1], ['alt', 3], ["voldown", 4], ['enter', 1], ['alt', 2],
-                       ['space', 1], ['alt', 3], ['voldown', 4], ['enter', 1], ['alt', 2], ['space', 1], ['alt', 3],
-                       ['voldown', 4], ['enter', 1], ['alt', 2], ['space', 1], ['alt', 3], ["voldown", 4], ['enter', 1],
-                       ['alt', 2], ['space', 1], ['alt', 3], ['voldown', 4], ['enter', 1], ['alt', 2], ['space', 1],
-                       ['alt', 3], ['voldown', 4], ['enter', 1]]
+            presses = [['alt',2],['space',1],['alt',3],["voldown",4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],["voldown",4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],["voldown",4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1]]
             pyPress(presses)
         elif "jarvis volume up" in command:
             speech("turning up the volume")
             asstWrite("turning up the volume")
             os.system("afplay speech.mp3")
-            presses = [['alt', 2], ['space', 1], ['alt', 3], ["volup", 4], ['enter', 1], ['alt', 2], ['space', 1],
-                       ['alt', 3], ["volup", 4], ['enter', 1], ['alt', 2], ['space', 1], ['alt', 3], ['voldown', 4],
-                       ['enter', 1], ['alt', 2], ['space', 1], ['alt', 3], ["volup", 4], ['enter', 1], ['alt', 2],
-                       ['space', 1], ['alt', 3], ["volup", 4], ['enter', 1], ['alt', 2], ['space', 1], ['alt', 3],
-                       ['voldown', 4], ['enter', 1], ['alt', 2], ['space', 1], ['alt', 3], ["volup", 4], ['enter', 1],
-                       ['alt', 2], ['space', 1], ['alt', 3], ["volup", 4], ['enter', 1], ['alt', 2], ['space', 1],
-                       ['alt', 3], ['voldown', 4], ['enter', 1]]
+            presses = [['alt',2],['space',1],['alt',3],["volup",4],['enter',1],['alt',2],['space',1],['alt',3],["volup",4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],["volup",4],['enter',1],['alt',2],['space',1],['alt',3],["volup",4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1],['alt',2],['space',1],['alt',3],["volup",4],['enter',1],['alt',2],['space',1],['alt',3],["volup",4],['enter',1],['alt',2],['space',1],['alt',3],['voldown',4],['enter',1]]
             pyPress(presses)
         elif "jarvis quit all" in command:
             speech("Are you sure?")
@@ -598,7 +516,7 @@ def run():
             while command == "":
                 command = listen().lower()
             if "yes" in command:
-                presses = [['alt', 2], ['space', 1], ['alt', 3], ["quitall", 4], ['enter', 1]]
+                presses = [['alt',2],['space',1],['alt',3],["quitall",4],['enter',1]]
                 pyPress(presses)
             asstWrite("Okay")
             speech("Okay")
@@ -782,3 +700,48 @@ def run():
             speech(response)
             os.system("afplay speech.mp3")
             asstWrite(response)
+
+def microphone_action():
+    # Sample backend code to execute
+    result = {"message": "Backend code executed successfully!", "status": "success"}
+    return result
+
+def read_chat_log(file_path):
+    try:
+        with open(file_path, "r") as file:
+            lines = file.readlines()
+            return lines[-10:]  # Return the last 10 lines
+    except FileNotFoundError:
+        return ["No chat log available."]
+
+def main():
+    st.set_page_config(page_title="LUMIN App", layout="wide")
+
+    # Header with LUMIN branding and account button
+    st.markdown("""<div style='display: flex; justify-content: space-between; align-items: center;'>
+    <h1 style='font-size: 2.5em; margin: 0;'>LUMIN</h1>
+    <button style='font-size: 1em; padding: 5px 10px; cursor: pointer;' onclick='showProfile()'>Account</button>
+    </div><hr>""", unsafe_allow_html=True)
+
+    # JavaScript for profile button
+    st.markdown("""
+    <script>
+    function showProfile() {
+        alert('Profile settings will be here.');
+    }
+    </script>
+    """, unsafe_allow_html=True)
+
+    # Activate button functionality
+    if st.button("Activate"):
+        result = microphone_action()
+        run()
+        st.success(result["message"])
+
+    # Cool feature: Chat log box
+    st.sidebar.title("Chat Log")
+    chat_log = read_chat_log("convo.txt")
+    st.sidebar.text_area("Recent Chat Log", "\n".join(chat_log), height=600, disabled=True)
+
+if __name__ == "__main__":
+    main()
