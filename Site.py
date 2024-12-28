@@ -28,7 +28,7 @@ import subprocess
 # importing required module
 import http.client as httplib
 # function to check internet connectivity
-
+st.set_page_config(page_title="LUMIN App", layout="wide")
 torch._dynamo.config.cache_size_limit = 64
 torch._dynamo.config.suppress_errors = True
 torch.set_float32_matmul_precision('high')
@@ -36,18 +36,18 @@ torch.set_float32_matmul_precision('high')
 chat = ChatTTS.Chat()
 chat.load(compile=True) # Set to True for better performance
 
-'''
-# Get device
-device = "cuda" if torch.cuda.is_available() else "cpu"
-tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to(device)
-
-# Run TTS
-# ❗ Since this model is multi-lingual voice cloning model, we must set the target speaker_wav and language
-# Text to speech list of amplitude values as output
-wav = tts.tts(text="Hello world!", speaker_wav="my/cloning/audio.wav", language="en")
-# Text to speech to a file
-tts.tts_to_file(text="Hello world!", speaker_wav="my/cloning/audio.wav", language="en", file_path="output.wav")
-'''
+# '''
+# # Get device
+# device = "cuda" if torch.cuda.is_available() else "cpu"
+# tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to(device)
+#
+# # Run TTS
+# # ❗ Since this model is multi-lingual voice cloning model, we must set the target speaker_wav and language
+# # Text to speech list of amplitude values as output
+# wav = tts.tts(text="Hello world!", speaker_wav="my/cloning/audio.wav", language="en")
+# # Text to speech to a file
+# tts.tts_to_file(text="Hello world!", speaker_wav="my/cloning/audio.wav", language="en", file_path="output.wav")
+# '''
 # Ignore DeprecationWarning
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -73,6 +73,7 @@ def checkConnection():
         return True
     except:
         print("\033[0;31mConnection failed\033[0m")
+        st.warning("Connection failed")
         return False
 
 def openCamera(length):
@@ -293,12 +294,12 @@ def recentSpeak(talk):
         call_minsec = (int(call_min)*60) + int(call_sec)
 
     time_since_wake = call_minsec - minsec
-    '''
-    print("Time since wake: " + str(time_since_wake))
-    print("Current Standby: " + str(standby))
-    print("call_minsec: " + str(call_minsec))
-    print("minsec: " + str(minsec))
-    '''
+    # '''
+    # print("Time since wake: " + str(time_since_wake))
+    # print("Current Standby: " + str(standby))
+    # print("call_minsec: " + str(call_minsec))
+    # print("minsec: " + str(minsec))
+    # '''
     if time_since_wake < standby:
         return True
     else:
@@ -365,6 +366,7 @@ def control(conversation):
     '''
 
 def viewClipboard():
+    global command
     f = open('convo.txt', 'a')
     f.write("User " + pyperclip.paste().replace("\n", ""))
     f.close()
@@ -388,6 +390,7 @@ def pyPress(presses):
 def run():
     checkConnection()
     while True:
+        st.success("Ready!")
         print("ready")
         print(standby)
         command = listen().lower()
@@ -689,7 +692,7 @@ def run():
             pyautogui.press('enter')
             '''
             os.system("afplay speech.mp3")
-        elif "jarvis, shut down confirm" in command:
+        elif "jarvis" in command and "shut down confirm" in command:
             speech("Shutting Down Now")
             asstWrite("Shutting Down Now")
             os.system("afplay speech.mp3")
@@ -715,7 +718,6 @@ def read_chat_log(file_path):
         return ["No chat log available."]
 
 def main():
-    st.set_page_config(page_title="LUMIN App", layout="wide")
 
     # Header with LUMIN branding and account button
     st.markdown("""<div style='display: flex; justify-content: space-between; align-items: center;'>
