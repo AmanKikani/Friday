@@ -1,0 +1,13 @@
+streamlit
+SpeechRecognition
+pyaudio
+pyautogui
+openai
+pathlib
+requests
+pyperclip
+datetime
+ollama
+torch
+torchaudio
+ChatTTS
