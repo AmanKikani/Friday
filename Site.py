@@ -1,6 +1,7 @@
 import streamlit as st
 import speech_recognition as sr
 # Remember, we import as SpeechRecognition and we need pyaudio as well for it to work
+import mouseinfo
 import pyautogui
 import time
 from openai import OpenAI
