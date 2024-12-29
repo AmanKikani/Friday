@@ -1,0 +1,11 @@
+[Unit]
+Description=Remote mouse
+
+[Service]
+ExecStart=/home/$USER/bin/remotemouse/RemoteMouse
+ExecStop=kill $(pgrep RemoteMouse)
+User=$USER
+Environment=DISPLAY=:1
+
+[Install]
+WantedBy=default.tagret
