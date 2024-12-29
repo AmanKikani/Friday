@@ -1,6 +1,7 @@
 streamlit
 SpeechRecognition
 pyautogui
+mouseinfo
 openai
 pathlib
 requests
