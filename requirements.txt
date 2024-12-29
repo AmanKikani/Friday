@@ -1,5 +1,5 @@
 streamlit
-SpeechRecognition
+speechrecognition
 pyaudio
 pyautogui
 openai
