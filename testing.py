@@ -1,3 +1,108 @@
+import pyautogui
+import time
+x = 0
+start = time.time()
+while x < 100:
+    pyautogui.moveRel(2,2, _pause=False)
+    x+=1
+end = time.time()
+
+print(f"Took {end - start:,.2f} seconds")
+from spacy.displacy import parse_ents
+
+# import ollama
+# import pyautogui
+#
+# def call(prompt, imagePath):
+#     response = ollama.chat(
+#         model='llama3.2-vision',
+#         messages=[{
+#             'role': 'user',
+#             'content': prompt,
+#             'images': [imagePath]
+#         }],
+#         format = {
+#         "type": "string",
+#         "enum": ["CLICK", "TYPE"]
+#         },
+#     )
+#     return str(response['message']['content'])
+#
+#
+# def locationCall(prompt, imagePath):
+#     response = ollama.chat(
+#         model='llama3.2-vision',
+#         messages=[{
+#             'role': 'user',
+#             'content': prompt,
+#             'images': [imagePath]
+#         }],
+#         format={
+#             "type": "integer",
+#         },
+#     )
+#     return str(response['message']['content'])
+#
+# def typeCall(prompt, imagePath):
+#     response = ollama.chat(
+#         model='llama3.2-vision',
+#         messages=[{
+#             'role': 'user',
+#             'content': prompt,
+#             'images': [imagePath]
+#         }],
+#
+#     )
+#     return str(response['message']['content'])
+#
+#
+#
+# def LLMCode():
+#     #ADD YOUR CODE HERE
+#     print()
+#
+#
+# def main():
+#     image = pyautogui.screenshot("testSS.png")
+#     image.save("testSS.png")
+#     prompt = "DO NOT DESCRIBE THE IMAGE YOU ARE SEEING. Your goal is to find the LLMCode() function, click on it and then type some code into it as well. You are tasked with interpreting a given query and determining the most appropriate action between the two options: CLICK or TYPE. Carefully analyze the context and intent of the query before making your decision. Your response must consist solely of one of these two words: CLICK or TYPE, without any additional text, explanation, or commentary. Ensure your reply is concise, precise, and adheres strictly to this format."
+#     response = call(prompt, "testSS.png").replace("\"","")
+#     print(response)
+#     while response != "CLICK" and response != "TYPE" and response != "click" and response != "type":
+#         prompt = "DO NOT DESCRIBE THE IMAGE YOU ARE SEEING. That was not a response of one word which was either CLICK or TYPE, Respond with only CLICK or TYPE, no punctuation, formatting, spaces, and in all capital letters. Now, choose an action to do in this image, CLICK or TYPE. Respond in only one word"
+#         response = call(prompt, "testSS.png")
+#         print(response)
+#     if response == "CLICK":
+#         x = int(locationCall("Respond with the x coordinate of the pixel you want to click", "testSS.png"))
+#         y = int(locationCall("Respond with the y coordinate of the pixel you want to click", "testSS.png"))
+#         print("Clicking at" + str(x) + ", " + str(y))
+#         pyautogui.moveTo(x, y)
+#         pyautogui.click()
+#     elif response == "TYPE":
+#         prompt = "DO NOT DESCRIBE THE IMAGE YOU ARE SEEING. Your goal is to find the LLMCode() function, click on it and then type some code into it as well. What would you like to type? Respond only with what you want to type"
+#         response = typeCall(prompt, "testSS.png")
+#         pyautogui.typewrite(response)
+#         print("Typing " + response)
+#
+#
+# if __name__ == '__main__':
+#     while True:
+#         print("running")
+#         main()
+
+
+# number = "64 32"
+# number = number.split(" ")
+# if number[0].isdigit():
+#     print(number[0])
+# else:
+#     print("Not a digit")
+
+
+# import keyboard
+# keyboard.press_and_release("cmd+space")
+#
+
 # import streamlit as st
 # import numpy as np
 # import matplotlib.pyplot as plt

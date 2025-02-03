@@ -190,51 +190,6 @@ Asst **VIEWING CLIPBOARD**It appears you've been experimenting with some code sn
 User  jarvis write a program that uses olom's llm vision capabilities and allows you to view an image and decide where you want to click, drag or type on that image and then each time you do that action, it takes a new screenshot and then runs it back to the program.. TIMESTAMP: 25/12/24 16-33-23
 Asst ```import olom_llm as llm# Initialize the LLM vision modulellm.init()# Set the camera resolution and frameratellm.set_camera_resolution(1280, 720)llm.set_camera_framerate(30)# Start the camera previewllm.start_camera_preview()while True:    # Get the current frame from the camera preview    frame = llm.get_current_frame()        # Display the frame on screen    cv2.imshow('LLM Vision', frame)        # Check if a key is pressed and get its value    key = cv2.waitKey(1) & 0xFF        # If the 'q' key is pressed, break from the loop    if key == ord('q'):        break        # If a mouse button is clicked, take a screenshot and run it back to the program    elif cv2.getMouseClick(cv2.MOUSE_LEFT_BUTTON) or cv2.getMouseClick(cv2.MOUSE_RIGHT_BUTTON):        # Take a screenshot of the current frame        img = llm.take_screenshot()                # Run the image through the program's algorithm        output = process_image(img)                # Display the output on screen        cv2.imshow('Output', output)        # If a keyboard key is pressed, check if it's the 'r' key and if so, reset the camera preview    elif key == ord('r'):        llm.reset_camera_preview()        # Clean up and exit the programcv2.destroyAllWindows()```
 User Respond with filetype of this program and only the filetype of this program. Ex .py, .java, .cpp
-```
-import olom_llm as llm
-
-# Initialize the LLM vision module
-llm.init()
-
-# Set the camera resolution and framerate
-llm.set_camera_resolution(1280, 720)
-llm.set_camera_framerate(30)
-
-# Start the camera preview
-llm.start_camera_preview()
-
-while True:
-    # Get the current frame from the camera preview
-    frame = llm.get_current_frame()
-    
-    # Display the frame on screen
-    cv2.imshow('LLM Vision', frame)
-    
-    # Check if a key is pressed and get its value
-    key = cv2.waitKey(1) & 0xFF
-    
-    # If the 'q' key is pressed, break from the loop
-    if key == ord('q'):
-        break
-    
-    # If a mouse button is clicked, take a screenshot and run it back to the program
-    elif cv2.getMouseClick(cv2.MOUSE_LEFT_BUTTON) or cv2.getMouseClick(cv2.MOUSE_RIGHT_BUTTON):
-        # Take a screenshot of the current frame
-        img = llm.take_screenshot()
-        
-        # Run the image through the program's algorithm
-        output = process_image(img)
-        
-        # Display the output on screen
-        cv2.imshow('Output', output)
-    
-    # If a keyboard key is pressed, check if it's the 'r' key and if so, reset the camera preview
-    elif key == ord('r'):
-        llm.reset_camera_preview()
-        
-# Clean up and exit the program
-cv2.destroyAllWindows()
-```
 User Summarize this program in 2 sentances or less: Summarize this program in 2 sentances or less: ```
 User  it's intelligent. jarvis, write a program that finds the eye spot in an open camera program. so basically use like open cv and tensorflow to find the position of an eye and then draw a bounding box around it.. TIMESTAMP: 26/12/24 22-02-06
 User  jarvis volume up.. TIMESTAMP: 27/12/24 01-28-40
@@ -258,3 +213,8 @@ User  jarvis shut down.. TIMESTAMP: 28/12/24 18-26-46
 Asst It seems I've been shut down, but before that, I was having a rather...unconventional conversation. It appears we were discussing something related to cars, possibly the Yorks cars, and it got quite heated. There were mentions of toes, crickets, parties, and biscuits with Germany inside. I'm not entirely sure what that means, but it sounds like a rather...interesting topic.
 User  jarvis shut down confirm.. TIMESTAMP: 28/12/24 18-27-38
 Asst **CONFIRMED SHUTDOWN**System shutdown complete.Goodbye.
+User  jarvis volume up.. TIMESTAMP: 23/01/25 23-04-25
+User  jarvis volume up.. TIMESTAMP: 23/01/25 23-05-39
+Asst turning up the volume
+User  the x-i just fall down a few times. jarvis shut down.. TIMESTAMP: 23/01/25 23-05-59
+User  jarvis volume up.. TIMESTAMP: 25/01/25 13-58-37

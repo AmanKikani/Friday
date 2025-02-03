@@ -54,7 +54,7 @@ function createWindow() {
 }
 
 function startStreamlit() {
-  const streamlitProcess = exec('streamlit run Site.py', (error, stdout, stderr) => {
+  const streamlitProcess = exec('streamlit run Site.py --server.headless true --browser.gatherUsageStats false --browser.serverPort 1', (error, stdout, stderr) => {
     if (error) {
       console.error(`Streamlit error: ${error.message}`);
       return;

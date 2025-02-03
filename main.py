@@ -216,11 +216,7 @@ def speech(texts):
     else:
         # mutliSpeech(texts)
         wavs = chat.infer(texts)
-
         for i in range(len(wavs)):
-            """
-            In some versions of torchaudio, the first line works but in other versions, so does the second line.
-            """
             try:
                 torchaudio.save(f"speech.mp3", torch.from_numpy(wavs[i]).unsqueeze(0), 24000)
             except:

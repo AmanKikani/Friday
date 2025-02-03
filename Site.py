@@ -17,7 +17,8 @@ import torchaudio
 import ChatTTS
 import threading
 import subprocess
-
+import mediapipe as mp
+import keyboard
 
 # importing required module
 import http.client as httplib
@@ -102,6 +103,42 @@ def openCamera(length):
     video_capture.release()
     cv2.destroyAllWindows()
 
+def findPointerFinger():
+    mp_hands = mp.solutions.hands
+    hands = mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.5)
+    mp_draw = mp.solutions.drawing_utils
+    cap = cv2.VideoCapture(0)
+
+    while cap.isOpened():
+        success, frame = cap.read()
+        if not success:
+            break
+
+        # Convert frame to RGB
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        results = hands.process(frame_rgb)
+
+        if results.multi_hand_landmarks:
+            for hand_landmarks in results.multi_hand_landmarks:
+                # Access the pointer fingertip (Landmark 8)
+                pointer_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
+                height, width, _ = frame.shape
+                x, y = int(pointer_tip.x * width), int(pointer_tip.y * height)
+
+                # Draw circle on the fingertip
+                cv2.circle(frame, (x, y), 10, (0, 255, 0), -1)
+
+                # Draw landmarks
+                mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+
+        cv2.imshow('Hand Tracking', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+
 def updateMessages():
     global conversation
     conversation = []
@@ -132,7 +169,7 @@ standby = 120
 def openAicall(call):
     global conversation
     updateMessages()
-    response = ollama.chat(model='llama3.1:8b',
+    response = ollama.chat(model='llama3.2:1b',
                            messages=conversation,
                            options={'temperature': 0})
     print(response['message']['content'])
@@ -482,9 +519,7 @@ def run():
             asstWrite(command)
             os.system("afplay speech.mp3")
             subprocess.call(['open', "/System/Applications/Safari.app"])
-            pyautogui.keyDown('command')
-            pyautogui.press('t')
-            pyautogui.keyUp('command')
+            keyboard.press_and_release("cmd+t")
             command = command.replace("Searching", "")
             pyautogui.typewrite(command)
             pyautogui.press('enter')
@@ -518,7 +553,8 @@ def run():
             asstWrite("Okay")
             speech("Okay")
             os.system("afplay speech.mp3")
-
+        elif "jarvis" in command and "hold this" in command:
+            findPointerFinger()
         elif "jarvis play" in command and "youtube" in command:
             asstWrite("Who would you like to play?")
             speech("Who would you like to play?")
@@ -526,26 +562,9 @@ def run():
             command = listen().lower()
             while command == "":
                 command = listen().lower()
-            '''
-            try:
-                pywhatkit.playonyt(command, use_api=True)
-
-                speech("Playing " + command + " on youtube")
-                # play speech audi
-                tts.save("speak.mp3")
-                time.sleep(.5)
-                os.system("afplay speak.mp3")
-
-            except:
-
-                # printing the error message
-                print("Network Error Occurred")
-            '''
             result = findIndex(youtuber_list, command)
             subprocess.call(['open', "/System/Applications/Safari.app"])
-            pyautogui.keyDown('command')
-            pyautogui.press('t')
-            pyautogui.keyUp('command')
+            keyboard.press_and_release("cmd+t")
             pyautogui.typewrite(youtuber_list[result[1] + 1][result[0]])
             pyautogui.press('enter')
 
@@ -554,11 +573,8 @@ def run():
             pyautogui.hotkey('play/pause')
         elif "jarvis show me" in command:
             subprocess.call(['open', "/System/Applications/Safari.app"])
-            pyautogui.keyDown('command')
-            pyautogui.press('t')
-            pyautogui.keyUp('command')
-            pyautogui.typewrite("chatgpt.com")
-            pyautogui.press('enter')
+            presses = [['command',2],['t',1],['command',3],['chat.openai.com',4],['enter',1]]
+            pyPress(presses)
             time.sleep(2)
             command = command.replace("jarvis show me", "")
             pyautogui.typewrite(command)
@@ -712,13 +728,20 @@ def read_chat_log(file_path):
         return ["No chat log available."]
 
 def main():
-
     # Header with LUMIN branding and account button
+    st.markdown(
+        r"""
+        <style>
+        .stAppDeployButton {
+                visibility: hidden;
+            }
+        </style>
+        """, unsafe_allow_html=True
+    )
     st.markdown("""<div style='display: flex; justify-content: space-between; align-items: center;'>
     <h1 style='font-size: 2.5em; margin: 0;'>LUMIN</h1>
     <button style='font-size: 1em; padding: 5px 10px; cursor: pointer;' onclick='showProfile()'>Account</button>
     </div><hr>""", unsafe_allow_html=True)
-
     # JavaScript for profile button
     st.markdown("""
     <script>
